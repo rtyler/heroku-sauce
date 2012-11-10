@@ -53,6 +53,10 @@ access_key: #{apikey}
 """)
         end
       end
+
+      def chrome
+        display 'Sauce for Heroku has not yet been configured!'
+      end
     end
   end
 end
