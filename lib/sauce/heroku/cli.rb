@@ -1,4 +1,5 @@
 require 'heroku'
+require 'heroku/command/base'
 require 'sauce'
 
 module Heroku
