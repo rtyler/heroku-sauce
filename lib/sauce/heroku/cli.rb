@@ -1,6 +1,7 @@
 require 'heroku'
 require 'heroku/command/base'
 require 'sauce'
+require 'yaml'
 
 module Heroku
   module Command
@@ -56,16 +57,26 @@ access_key: #{apikey}
       end
 
       def chrome
-        unless configured?
+        c = configured?
+
+        unless c
           display 'Sauce for Heroku has not yet been configured!'
-          return
+        else
+          display 'Starting a Chrome session!'
         end
       end
 
 
       def configured?
-        File.exists?('ondemand.yml') ||
-          File.exists?(File.expand_path('~/.sauce/ondemand.yml'))
+        if File.exists?('ondemand.yml')
+          return YAML.load_file('ondemand.yml')
+        end
+
+        if File.exists?(File.expand_path('~/.sauce/ondemand.yml'))
+          return true
+        end
+
+        return false
       end
     end
   end

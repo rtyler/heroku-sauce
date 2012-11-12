@@ -12,3 +12,11 @@ Feature: Start a chrome browser pointing at my Heroku site
       """
       Sauce for Heroku has not yet been configured!
       """
+
+  Scenario: With Sauce configured
+    Given I have configured the plugin
+    When I run `heroku sauce:chrome`
+    Then the output should contain:
+      """
+      Starting a Chrome session!
+      """

@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'aruba/cucumber'
+require 'yaml'
 
 $:.unshift(File.join(File.dirname(__FILE__), '..', '..', 'lib'))
 
