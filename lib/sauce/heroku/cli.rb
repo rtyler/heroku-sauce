@@ -58,6 +58,12 @@ access_key: #{apikey}
       def chrome
         display 'Sauce for Heroku has not yet been configured!'
       end
+
+
+      def configured?
+        File.exists?('ondemand.yml') ||
+          File.exists?(File.expand_path('~/.sauce/ondemand.yml'))
+      end
     end
   end
 end
