@@ -1,11 +1,14 @@
 require 'heroku'
 require 'heroku/command/base'
+require 'httparty'
 require 'sauce'
 require 'yaml'
 
 module Heroku
   module Command
     class Sauce < BaseWithApp
+      attr_accessor :config
+
       def index
         display 'Lol'
       end
@@ -63,20 +66,52 @@ access_key: #{apikey}
           display 'Sauce for Heroku has not yet been configured!'
         else
           display 'Starting a Chrome session!'
+          display scoutup!
         end
       end
 
 
       def configured?
+        return @config if @config
+
         if File.exists?('ondemand.yml')
-          return YAML.load_file('ondemand.yml')
+          @config = YAML.load_file('ondemand.yml')
+          return @config
         end
 
         if File.exists?(File.expand_path('~/.sauce/ondemand.yml'))
-          return true
+          @config = YAML.load_file(File.expand_path('~/.sauce/ondemand.yml'))
+          return @config
         end
 
         return false
+      end
+
+      def scoutup!
+        unless configured?
+          display 'The Sauce plugin is not configured properly'
+          return
+        end
+
+        response = HTTParty.post(scout_url,
+                                 :query => JSON.dump({"os" => "Windows 2003",
+                                 "browser" => "Firefox",
+                                 "browser-version" => "7",
+                                 "url" => "http://hello-internet.org
+                                 "}),
+                                 :headers => {'Content-Type' => 'application/json'})
+
+        return unless (response && response.code == 200)
+        return response.body
+      end
+
+      private
+
+      def scout_url
+        return nil unless configured?
+        username = config['username']
+        apikey = config['access_key']
+        "https://#{username}:#{apikey}@saucelabs.com/rest/v1/users/#{username}/scout"
       end
     end
   end

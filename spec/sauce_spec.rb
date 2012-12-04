@@ -1,14 +1,11 @@
 require 'spec_helper'
 
 describe Heroku::Command::Sauce do
+  let(:command) { subject }
   it { should be_instance_of Heroku::Command::Sauce }
 
   describe '#configured?' do
     let(:exists) { false }
-
-    before :each do
-    end
-
 
     context 'by default' do
       before :each do
@@ -18,7 +15,7 @@ describe Heroku::Command::Sauce do
             File.expand_path('~/.sauce/ondemand.yml')).and_return(false)
       end
 
-      it { subject.should_not be_configured }
+      it { command.should_not be_configured }
     end
 
     context 'configured with a local ondemand.yml' do
@@ -34,13 +31,32 @@ describe Heroku::Command::Sauce do
         YAML.should_receive(:load_file).with('ondemand.yml').and_return(config)
       end
 
-      it { subject.should be_configured }
+      it { command.should be_configured }
       it 'should return the configuration' do
-        result = subject.configured?
+        result = command.configured?
 
         result.should be_instance_of(Hash)
         expect(result['username']).to eql(config['username'])
         expect(result['access_key']).to eql(config['access_key'])
+      end
+    end
+  end
+
+
+  describe '#scoutup!' do
+    it { should respond_to :scoutup! }
+
+    context 'when configured' do
+      let(:scouturl) { 'http://fakeurl' }
+      before :each do
+        command.should_receive(:configured?).and_return(true)
+        command.stub(:scout_url).and_return(scouturl)
+      end
+
+      it 'should post to Sauce Labs' do
+        HTTParty.should_receive(:post).with(scouturl,
+                                            hash_including(:headers => {'Content-Type' => 'application/json'}))
+        command.scoutup!
       end
     end
   end
