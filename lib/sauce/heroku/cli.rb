@@ -14,6 +14,9 @@ module Heroku
         display 'Lol'
       end
 
+      # sauce:help
+      #
+      # Display this help message
       def help
         display 'Sauce for Heroku Help'
       end
@@ -60,6 +63,9 @@ access_key: #{apikey}
         end
       end
 
+      # sauce:chrome
+      #
+      # Start a Sauce Scout session with a Chrome web browser
       def chrome
         c = configured?
 
@@ -71,6 +77,7 @@ access_key: #{apikey}
         end
       end
 
+      private
 
       def configured?
         return @config if @config
@@ -94,25 +101,30 @@ access_key: #{apikey}
           return
         end
 
+        username = config['username']
+        apikey = config['access_key']
+
         response = HTTParty.post(scout_url,
-                                 :query => JSON.dump({"os" => "Windows 2003",
-                                 "browser" => "Firefox",
-                                 "browser-version" => "7",
-                                 "url" => "http://hello-internet.org
-                                 "}),
+                                 :body => {
+                                      :os => "Windows 2003",
+                                      :browser => "Firefox",
+                                      :'browser-version' => '7',
+                                      :url => 'http://hello-internet.org'}.to_json,
+                                 :basic_auth => {:username => username,
+                                                 :password => apikey},
                                  :headers => {'Content-Type' => 'application/json'})
 
         return unless (response && response.code == 200)
-        return response.body
+        response = JSON.parse(response.body)
+        if response['embed']
+          launchy('Firing up Scout in your browser!', response['embed'])
+        end
       end
-
-      private
 
       def scout_url
         return nil unless configured?
         username = config['username']
-        apikey = config['access_key']
-        "https://#{username}:#{apikey}@saucelabs.com/rest/v1/users/#{username}/scout"
+        "https://saucelabs.com/rest/v1/users/#{username}/scout"
       end
     end
   end
