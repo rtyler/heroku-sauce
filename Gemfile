@@ -1,10 +1,16 @@
-source :gemcutter
+source :rubygems
 
-gem 'rake'
-gem 'heroku'
-gem 'sauce'
-gem 'launchy'
-gem 'httparty', :path => 'vendor/httparty'
+# This group is for vendoring changes for a "release"
+group :vendor do
+  gem 'httparty'
+end
+
+group :development do
+  gem 'rake'
+  gem 'heroku'
+  gem 'sauce'
+  gem 'launchy'
+end
 
 group :test do
   gem 'rspec'

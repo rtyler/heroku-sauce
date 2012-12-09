@@ -1,7 +1,8 @@
 require 'heroku'
 require 'heroku/command/base'
 require 'httparty'
-require 'sauce'
+require 'json'
+#require 'sauce'
 require 'yaml'
 
 module Heroku

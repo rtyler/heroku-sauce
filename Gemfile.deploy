@@ -1,0 +1,8 @@
+source :rubygems
+
+# This group is for vendoring changes for a "release"
+group :vendor do
+  gem 'httparty'
+end
+
+# vim: ft=ruby
