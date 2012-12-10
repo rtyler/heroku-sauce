@@ -8,19 +8,9 @@ require 'yaml'
 module Heroku
   module Command
     class Sauce < BaseWithApp
-      attr_accessor :config
-
       def index
-        display 'Lol'
+        display 'Please run `heroku help sauce` for more details'
       end
-
-      # sauce:help
-      #
-      # Display this help message
-      def help
-        display 'Sauce for Heroku Help'
-      end
-
       # sauce:configure
       #
       # Configure the Sauce CLI plugin with your username and API key
@@ -101,9 +91,6 @@ access_key: #{apikey}
           return
         end
 
-        username = config['username']
-        apikey = config['access_key']
-
         response = HTTParty.post(scout_url,
                                  :body => {
                                       :os => "Windows 2003",
@@ -111,11 +98,13 @@ access_key: #{apikey}
                                       :'browser-version' => '7',
                                       :url => 'http://hello-internet.org'}.to_json,
                                  :basic_auth => {:username => username,
-                                                 :password => apikey},
+                                                 :password => access_key},
                                  :headers => {'Content-Type' => 'application/json'})
 
         return unless (response && response.code == 200)
+
         response = JSON.parse(response.body)
+
         if response['embed']
           launchy('Firing up Scout in your browser!', response['embed'])
         end
@@ -123,8 +112,17 @@ access_key: #{apikey}
 
       def scout_url
         return nil unless configured?
-        username = config['username']
         "https://saucelabs.com/rest/v1/users/#{username}/scout"
+      end
+
+      def username
+        return unless configured?
+        @config['username']
+      end
+
+      def access_key
+        return unless configured?
+        @config['access_key']
       end
     end
   end

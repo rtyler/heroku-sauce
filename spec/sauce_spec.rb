@@ -15,7 +15,9 @@ describe Heroku::Command::Sauce do
             File.expand_path('~/.sauce/ondemand.yml')).and_return(false)
       end
 
-      it { command.should_not be_configured }
+      it 'should return false' do
+        command.send(:configured?).should_not be_true
+      end
     end
 
     context 'configured with a local ondemand.yml' do
@@ -33,7 +35,7 @@ describe Heroku::Command::Sauce do
 
       it { command.should be_configured }
       it 'should return the configuration' do
-        result = command.configured?
+        result = command.send(:configured?)
 
         result.should be_instance_of(Hash)
         expect(result['username']).to eql(config['username'])
@@ -44,19 +46,16 @@ describe Heroku::Command::Sauce do
 
 
   describe '#scoutup!' do
-    it { should respond_to :scoutup! }
-
     context 'when configured' do
       let(:scouturl) { 'http://fakeurl' }
       before :each do
-        command.should_receive(:configured?).and_return(true)
         command.stub(:scout_url).and_return(scouturl)
       end
 
       it 'should post to Sauce Labs' do
         HTTParty.should_receive(:post).with(scouturl,
                                             hash_including(:headers => {'Content-Type' => 'application/json'}))
-        command.scoutup!
+        command.send(:scoutup!)
       end
     end
   end
