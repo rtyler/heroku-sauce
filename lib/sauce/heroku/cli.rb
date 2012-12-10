@@ -11,6 +11,7 @@ module Heroku
       def index
         display 'Please run `heroku help sauce` for more details'
       end
+
       # sauce:configure
       #
       # Configure the Sauce CLI plugin with your username and API key
@@ -56,14 +57,40 @@ access_key: #{apikey}
       # sauce:chrome
       #
       # Start a Sauce Scout session with a Chrome web browser
-      def chrome
-        c = configured?
 
-        unless c
-          display 'Sauce for Heroku has not yet been configured!'
-        else
-          display 'Starting a Chrome session!'
-          display scoutup!
+      [
+        #[:chrome, ['Windows 2008', 'chrome', '']],
+        [:firefox4, ['Windows 2003', 'firefox', '4']],
+        [:firefox, ['Windows 2003', 'firefox', '17']],
+
+        [:android, ['Linux', 'android', '4']],
+
+        [:iphone, ['Mac 10.8', 'iphone', '6']],
+        [:safari, ['Mac 10.6', 'safari', '5']],
+
+        [:ie6, ['Windows 2003', 'iexplore', '6']],
+        [:ie7, ['Windows 2003', 'iexplore', '7']],
+        [:ie8, ['Windows 2003', 'iexplore', '8']],
+        [:ie9, ['Windows 2008', 'iexplore', '9']],
+      ].each do |method, args|
+        define_method(method) do
+          unless configured?
+            display 'Sauce for Heroku has not yet been configured!'
+          else
+            @url = api.get_app(app).body['web_url']
+
+            unless @url
+              display 'Unable to get the URL for your app, bailing out!'
+              return
+            end
+
+            @os, @browser, @browserversion = args
+            display "Starting a #{@browser} session on #{@os}!"
+            unless scoutup!
+              display 'Failed to fire up a Scout session for some reason'
+            end
+          end
+
         end
       end
 
@@ -91,23 +118,26 @@ access_key: #{apikey}
           return
         end
 
+        body = {:os => @os,
+                :browser => @browser,
+                :'browser-version' => @browserversion,
+                :url => @url}
+
         response = HTTParty.post(scout_url,
-                                 :body => {
-                                      :os => "Windows 2003",
-                                      :browser => "Firefox",
-                                      :'browser-version' => '7',
-                                      :url => 'http://hello-internet.org'}.to_json,
+                                 :body => body.to_json,
                                  :basic_auth => {:username => username,
                                                  :password => access_key},
                                  :headers => {'Content-Type' => 'application/json'})
 
-        return unless (response && response.code == 200)
+        return false unless (response && response.code == 200)
 
         response = JSON.parse(response.body)
 
         if response['embed']
           launchy('Firing up Scout in your browser!', response['embed'])
         end
+
+        return true
       end
 
       def scout_url
