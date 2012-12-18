@@ -41,6 +41,12 @@ describe Sauce::Heroku::API::Sauce do
       include_context 'valid config'
       let(:url) { 'http://fake/scout/url' }
       let(:body) { {:url => 'http://saucelabs.com/'} }
+      let(:response) do
+        r = mock('Valid response')
+        r.stub(:code => 200)
+        r.stub(:body => '{"embed" : "http://rspec"}')
+        r
+      end
       before :each do
         config.stub(:configured? => true)
         api.should_receive(:scout_url).and_return(url)
@@ -49,8 +55,30 @@ describe Sauce::Heroku::API::Sauce do
       it 'should POST to Sauce Labs properly' do
         headers = {'Content-Type' => 'application/json'}
         HTTParty.should_receive(:post).with(url,
-                                            hash_including(:headers => headers))
+                                            hash_including(:headers => headers)
+                                           ).and_return(response)
         api.create_scout_session(body)
+      end
+
+      context 'with invalid credentials' do
+        let(:response) { mock('Unauthorized Response', :code => 401) }
+        it 'should raise an error' do
+          HTTParty.should_receive(:post).and_return(response)
+
+          expect {
+            api.create_scout_session(body)
+          }.to raise_error(Sauce::Heroku::Errors::SauceAuthenticationError)
+        end
+      end
+
+      context 'when the API returns non-200s' do
+        let(:response) { mock('Unauthorized Response', :code => 500) }
+        it 'should raise an error' do
+          HTTParty.should_receive(:post).and_return(response)
+          expect {
+            api.create_scout_session(body)
+          }.to raise_error(Sauce::Heroku::Errors::SauceUnknownError)
+        end
       end
     end
   end

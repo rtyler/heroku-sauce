@@ -26,9 +26,18 @@ module Sauce
                                                   :password => config.access_key},
                                   :headers => {'Content-Type' => 'application/json'})
 
-          return nil unless (response && response.code == 200)
+          if response.code == 401
+            raise Errors::SauceAuthenticationError, 'Authentication failed'
+          elsif response.code != 200
+            raise Errors::SauceUnknownError, 'Something is wrong with the Sauce Labs API'
+          end
 
-          response = JSON.parse(response.body)
+          begin
+            response = JSON.parse(response.body)
+          rescue JSON::ParserError
+            raise Errors::SauceUnknownError, 'Sauce API is returning invalid JSON'
+          end
+
           # The response should contain the attribute `embed` which is the
           # usable scout session URL
           return response['embed']

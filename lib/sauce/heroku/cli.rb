@@ -120,7 +120,8 @@ access_key: #{apikey}
         begin
           url = @sauceapi.create_scout_session(body)
         rescue ::Sauce::Heroku::Errors::SauceAuthenticationError
-          puts 'Auth error!'
+          display 'Authentication error! Check your ondemand.yml!'
+          return true
         end
 
         unless url.nil?
