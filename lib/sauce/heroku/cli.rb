@@ -3,7 +3,8 @@ require 'heroku/command/base'
 require 'httparty'
 require 'json'
 #require 'sauce'
-require 'yaml'
+
+require 'sauce/heroku/config'
 
 module Heroku
   module Command
@@ -96,21 +97,6 @@ access_key: #{apikey}
 
       private
 
-      def configured?
-        return @config if @config
-
-        if File.exists?('ondemand.yml')
-          @config = YAML.load_file('ondemand.yml')
-          return @config
-        end
-
-        if File.exists?(File.expand_path('~/.sauce/ondemand.yml'))
-          @config = YAML.load_file(File.expand_path('~/.sauce/ondemand.yml'))
-          return @config
-        end
-
-        return false
-      end
 
       def scoutup!
         unless configured?
