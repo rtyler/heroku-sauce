@@ -1,10 +1,9 @@
 require 'heroku'
 require 'heroku/command/base'
-require 'httparty'
-require 'json'
-#require 'sauce'
 
+require 'sauce/heroku/api'
 require 'sauce/heroku/config'
+require 'sauce/heroku/errors'
 
 module Heroku
   module Command
@@ -13,6 +12,7 @@ module Heroku
         super(*args)
         @config = ::Sauce::Heroku::Config.new
         @config.load!
+        @sauceapi = ::Sauce::Heroku::API::Sauce.new(@config)
       end
 
       def index
@@ -115,26 +115,17 @@ access_key: #{apikey}
                 :'browser-version' => @browserversion,
                 :url => @url}
 
-        response = HTTParty.post(scout_url,
-                                 :body => body.to_json,
-                                 :basic_auth => {:username => @config.username,
-                                                 :password => @config.access_key},
-                                 :headers => {'Content-Type' => 'application/json'})
 
-        return false unless (response && response.code == 200)
-
-        response = JSON.parse(response.body)
-
-        if response['embed']
-          launchy('Firing up Scout in your browser!', response['embed'])
+        url = nil
+        begin
+          url = @sauceapi.create_scout_session(body)
+        rescue ::Sauce::Heroku::Errors::SauceAuthenticationError
+          puts 'Auth error!'
         end
 
-        return true
-      end
-
-      def scout_url
-        return nil unless @config.configured?
-        "https://saucelabs.com/rest/v1/users/#{@config.username}/scout"
+        unless url.nil?
+          launchy('Firing up Scout in your browser!', url)
+        end
       end
     end
   end
