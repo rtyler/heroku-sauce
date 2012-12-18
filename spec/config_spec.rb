@@ -97,4 +97,48 @@ describe Sauce::Heroku::Config do
       it { should eql(expected_path) }
     end
   end
+
+  describe '#username' do
+    subject { config.username }
+
+    context 'when not configured' do
+      before :each do
+        config.stub(:configured? => false)
+      end
+
+      it { should be_nil }
+    end
+
+    context 'when configured' do
+      let(:username) { 'rspec' }
+      let(:contents) { {'username' => username } }
+      before :each do
+        config.stub(:config => contents)
+      end
+
+      it { should eql(username) }
+    end
+  end
+
+  describe '#access_key' do
+    subject { config.access_key }
+
+    context 'when not configured' do
+      before :each do
+        config.stub(:configured? => false)
+      end
+
+      it { should be_nil }
+    end
+
+    context 'when configured' do
+      let(:key) { 'spec-key' }
+      let(:contents) { {'access_key' => key } }
+      before :each do
+        config.stub(:config => contents)
+      end
+
+      it { should eql(key) }
+    end
+  end
 end

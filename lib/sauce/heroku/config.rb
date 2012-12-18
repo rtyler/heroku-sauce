@@ -4,7 +4,6 @@ module Sauce
   module Heroku
     class Config
       CONFIG_FILE = 'ondemand.yml'
-
       attr_accessor :config
 
       def filepath
@@ -31,6 +30,16 @@ module Sauce
 
       def configured?
         return !(config.nil?)
+      end
+
+      def username
+        return nil unless configured?
+        config['username']
+      end
+
+      def access_key
+        return nil unless configured?
+        config['access_key']
       end
     end
   end

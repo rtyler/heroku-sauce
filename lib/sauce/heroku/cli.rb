@@ -9,6 +9,12 @@ require 'sauce/heroku/config'
 module Heroku
   module Command
     class Sauce < BaseWithApp
+      def initialize(*args)
+        super(*args)
+        @config = ::Sauce::Heroku::Config.new
+        @config.load!
+      end
+
       def index
         display 'Please run `heroku help sauce` for more details'
       end
@@ -75,7 +81,7 @@ access_key: #{apikey}
         [:ie9, ['Windows 2008', 'iexplore', '9']],
       ].each do |method, args|
         define_method(method) do
-          unless configured?
+          unless @config.configured?
             display 'Sauce for Heroku has not yet been configured!'
           else
             @url = api.get_app(app).body['web_url']
@@ -99,7 +105,7 @@ access_key: #{apikey}
 
 
       def scoutup!
-        unless configured?
+        unless @config.configured?
           display 'The Sauce plugin is not configured properly'
           return
         end
@@ -111,8 +117,8 @@ access_key: #{apikey}
 
         response = HTTParty.post(scout_url,
                                  :body => body.to_json,
-                                 :basic_auth => {:username => username,
-                                                 :password => access_key},
+                                 :basic_auth => {:username => @config.username,
+                                                 :password => @config.access_key},
                                  :headers => {'Content-Type' => 'application/json'})
 
         return false unless (response && response.code == 200)
@@ -127,18 +133,8 @@ access_key: #{apikey}
       end
 
       def scout_url
-        return nil unless configured?
-        "https://saucelabs.com/rest/v1/users/#{username}/scout"
-      end
-
-      def username
-        return unless configured?
-        @config['username']
-      end
-
-      def access_key
-        return unless configured?
-        @config['access_key']
+        return nil unless @config.configured?
+        "https://saucelabs.com/rest/v1/users/#{@config.username}/scout"
       end
     end
   end
