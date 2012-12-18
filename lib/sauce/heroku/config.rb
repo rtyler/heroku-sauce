@@ -20,12 +20,9 @@ module Sauce
 
       def load!
         return config unless config.nil?
+        return nil if filepath.nil?
 
-        if filepath.nil?
-          return nil
-        end
-
-        config = YAML.load_file(filepath)
+        @config = YAML.load_file(filepath)
       end
 
       def configured?

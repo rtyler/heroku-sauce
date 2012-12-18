@@ -30,7 +30,12 @@ describe Heroku::Command::Sauce do
 
   describe '#scout_url' do
     subject { command.send(:scout_url) }
+
     context 'when not configured' do
+      let(:config) { mock('Mock Config', :configured? => false) }
+      before :each do
+        command.instance_variable_set(:@config, config)
+      end
       it { should be_nil }
     end
 
