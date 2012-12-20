@@ -141,4 +141,11 @@ describe Sauce::Heroku::Config do
       it { should eql(key) }
     end
   end
+
+  describe '#write!' do
+    subject { config.write! }
+    context 'without credentials' do
+      it { should be_nil }
+    end
+  end
 end

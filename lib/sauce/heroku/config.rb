@@ -38,6 +38,12 @@ module Sauce
         return nil unless configured?
         config['access_key']
       end
+
+      def write!
+        if username.nil? || access_key.nil?
+          return nil
+        end
+      end
     end
   end
 end
