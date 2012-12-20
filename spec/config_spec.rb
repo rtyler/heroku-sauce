@@ -143,9 +143,5 @@ describe Sauce::Heroku::Config do
   end
 
   describe '#write!' do
-    subject { config.write! }
-    context 'without credentials' do
-      it { should be_nil }
-    end
   end
 end

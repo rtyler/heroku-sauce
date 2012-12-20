@@ -108,4 +108,41 @@ describe Sauce::Heroku::API::Sauce do
       it { should_not be_empty }
     end
   end
+
+  describe '#default_headers' do
+    subject { api.default_headers }
+    it { should have_key 'Content-Type' }
+    it { expect(subject['Content-Type']).to eql('application/json') }
+  end
+
+  describe '#create_account' do
+    it { should respond_to :create_account }
+
+    context 'without valid parameters' do
+      it 'should raise an error if nils are passed' do
+        expect {
+          api.create_account(nil, nil, nil, nil)
+        }.to raise_error(Sauce::Heroku::Errors::InvalidParametersError)
+      end
+    end
+
+    context 'with valid parameters' do
+      let(:url) { 'http://create/user' }
+      let(:username) { 'rspec' }
+      let(:password) { 'bdd' }
+      let(:email) { 'rspec@example.org ' }
+
+      before :each do
+        api.stub(:account_url => url)
+      end
+
+      it 'should POST to Sauce Labs' do
+        HTTParty.should_receive(:post).with(
+          url,
+          hash_including(:body)
+        )
+        api.create_account(username, password, email, nil)
+      end
+    end
+  end
 end

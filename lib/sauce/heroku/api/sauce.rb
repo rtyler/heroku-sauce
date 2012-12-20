@@ -7,6 +7,8 @@ module Sauce
       class Sauce
         attr_reader :config
 
+        API_CLIENT_ID = '0C309258-40FA-4138-91AF-C226F17C6954'
+
         def initialize(config)
           @config = config
         end
@@ -24,7 +26,7 @@ module Sauce
                                   :body => body.to_json,
                                   :basic_auth => {:username => config.username,
                                                   :password => config.access_key},
-                                  :headers => {'Content-Type' => 'application/json'})
+                                  :headers => default_headers)
 
           if response.code == 401
             raise Errors::SauceAuthenticationError, 'Authentication failed'
@@ -43,9 +45,33 @@ module Sauce
           return response['embed']
         end
 
+        def default_headers
+          @headers ||= begin
+                {
+                  'Content-Type' => 'application/json'
+                }
+          end
+        end
+
         def scout_url
           return nil unless config.configured?
           "https://saucelabs.com/rest/v1/users/#{config.username}/scout"
+        end
+
+        def create_account(username, password, email, full_name)
+          if username.nil? || email.nil? || password.nil?
+            raise Errors::InvalidParametersError
+          end
+          full_name ||= ''
+          data = {:username => username,
+                  :email => email,
+                  :password => password,
+                  :name => full_name,
+                  :token => API_CLIENT_ID}
+
+          response = HTTParty.post(account_url,
+                                   :body => data.to_json,
+                                   :headers => default_headers)
         end
       end
     end
